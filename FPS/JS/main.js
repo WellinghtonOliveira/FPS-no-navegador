@@ -9,10 +9,19 @@ let cameraYaw = 0;
 let cameraPitch = 0;
 let cameraPos = { x: 0, y: 0, z: 0 };
 
+cameraPos.y = 0; // altura inicial
+let velocityY = 0;
+const gravity = 0.01; // força da gravidade
+const jumpForce = 0.2; // força do pulo
+let onGround = true;
+
+
+
 let lastShotTime = 0;
 let shotDir = { x: 0, y: 0, z: 0 };
 
 // Configuração do jogador
+const playerHeight = 1.8; // altura do jogador
 const playerRadius = 0.5;
 
 // Travar cursor
@@ -24,8 +33,8 @@ canvas.addEventListener("click", () => {
 document.addEventListener("mousemove", (event) => {
     if (document.pointerLockElement === canvas) {
         const sensibilidade = 0.002;
-        cameraYaw -= event.movementX * sensibilidade;
-        cameraPitch -= event.movementY * sensibilidade;
+        cameraYaw += event.movementX * sensibilidade;
+        cameraPitch += event.movementY * sensibilidade;
         cameraPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraPitch));
     }
 });
@@ -106,6 +115,7 @@ function updateMovement() {
     let nx = cameraPos.x;
     let nz = cameraPos.z;
 
+    // Movimento horizontal
     if (keys["w"]) {
         nx += Math.sin(cameraYaw) * velocidade;
         nz += Math.cos(cameraYaw) * velocidade;
@@ -123,11 +133,68 @@ function updateMovement() {
         nz -= Math.sin(cameraYaw) * velocidade;
     }
 
+    // Colisão horizontal
     if (!collides(nx, nz)) {
         cameraPos.x = nx;
         cameraPos.z = nz;
     }
+
+    // --- Gravidade e pulo ---
+    velocityY -= gravity;
+
+    // Pular (barra de espaço)
+    if (keys[" "] && onGround) {
+        velocityY = jumpForce;
+        onGround = false;
+    }
+
+    cameraPos.y += velocityY;
+
+    // Se atingir o chão
+    if (cameraPos.y <= 0) {
+        cameraPos.y = 0;
+        velocityY = 0;
+        onGround = true;
+    }
 }
+
+// desenha o chao 
+function drawGround() {
+    const size = 50;
+    const step = 2;
+    ctx.strokeStyle = "#333";
+    ctx.lineWidth = 1;
+
+    // linhas paralelas a Z
+    for (let x = -size; x <= size; x += step) {
+        ctx.beginPath();
+        const p1 = rotate3D({ x: x - cameraPos.x, y: -cameraPos.y, z: -size - cameraPos.z }, cameraYaw, cameraPitch);
+        const p2 = rotate3D({ x: x - cameraPos.x, y: -cameraPos.y, z: size - cameraPos.z }, cameraYaw, cameraPitch);
+        if (p1.z > 0.1 && p2.z > 0.1) {
+            const proj1 = project(p1);
+            const proj2 = project(p2);
+            ctx.moveTo(proj1.x, proj1.y);
+            ctx.lineTo(proj2.x, proj2.y);
+            ctx.stroke();
+        }
+    }
+
+    // linhas paralelas a X
+    for (let z = -size; z <= size; z += step) {
+        ctx.beginPath();
+        const p1 = rotate3D({ x: -size - cameraPos.x, y: -cameraPos.y, z: z - cameraPos.z }, cameraYaw, cameraPitch);
+        const p2 = rotate3D({ x: size - cameraPos.x, y: -cameraPos.y, z: z - cameraPos.z }, cameraYaw, cameraPitch);
+        if (p1.z > 0.1 && p2.z > 0.1) {
+            const proj1 = project(p1);
+            const proj2 = project(p2);
+            ctx.moveTo(proj1.x, proj1.y);
+            ctx.lineTo(proj2.x, proj2.y);
+            ctx.stroke();
+        }
+    }
+}
+
+
 
 // Desenhar cubo
 function drawCube(x, y, z) {
@@ -137,6 +204,7 @@ function drawCube(x, y, z) {
             y: v.y + y - cameraPos.y,
             z: v.z + z - cameraPos.z
         };
+
         return rotate3D(p, cameraYaw, cameraPitch);
     });
 
@@ -253,6 +321,7 @@ function draw() {
 
     updateMovement();
 
+    drawGround()
     for (const cube of cubes) {
         drawCube(cube.x, cube.y, cube.z);
     }
