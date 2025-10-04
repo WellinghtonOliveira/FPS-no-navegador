@@ -1,40 +1,99 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// Ajusta o tamanho da tela
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Ângulos da câmera
-let cameraYaw = 0;   // Esquerda / Direita
-let cameraPitch = 0; // Cima / Baixo
+// Variáveis da câmera
+let cameraYaw = 0;
+let cameraPitch = 0;
 
-// Travar o cursor ao clicar
+// Distância da câmera
+let cameraPos = { x: 0, y: 0, z: -5 };
+
+// Travar cursor
 canvas.addEventListener("click", () => {
     canvas.requestPointerLock();
 });
 
-// Quando o mouse se mover
+// Controle do mouse
 document.addEventListener("mousemove", (event) => {
     if (document.pointerLockElement === canvas) {
-        const sensibilidade = 0.002; // ajuste fino de velocidade
+        const sensibilidade = 0.002;
         cameraYaw -= event.movementX * sensibilidade;
         cameraPitch -= event.movementY * sensibilidade;
-
-        // limita o olhar para cima/baixo (90°)
         cameraPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraPitch));
     }
 });
 
-// Desenhar “visão” simples
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+// Pontos de um cubo 3D
+const cubeVertices = [
+    { x: -1, y: -1, z: -1 },
+    { x: 1, y: -1, z: -1 },
+    { x: 1, y: 1, z: -1 },
+    { x: -1, y: 1, z: -1 },
+    { x: -1, y: -1, z: 1 },
+    { x: 1, y: -1, z: 1 },
+    { x: 1, y: 1, z: 1 },
+    { x: -1, y: 1, z: 1 },
+];
 
-    // Mostra ângulos da câmera
-    ctx.fillStyle = "white";
-    ctx.font = "20px monospace";
-    ctx.fillText("Yaw: " + cameraYaw.toFixed(2), 20, 40);
-    ctx.fillText("Pitch: " + cameraPitch.toFixed(2), 20, 70);
+// Ligações entre vértices (arestas)
+const edges = [
+    [0, 1], [1, 2], [2, 3], [3, 0],
+    [4, 5], [5, 6], [6, 7], [7, 4],
+    [0, 4], [1, 5], [2, 6], [3, 7],
+];
+
+// Função para rotacionar um ponto 3D
+function rotate3D(point, yaw, pitch) {
+    // Rotação em Y (esquerda/direita)
+    let x = point.x * Math.cos(yaw) - point.z * Math.sin(yaw);
+    let z = point.x * Math.sin(yaw) + point.z * Math.cos(yaw);
+
+    // Rotação em X (cima/baixo)
+    let y = point.y * Math.cos(pitch) - z * Math.sin(pitch);
+    z = point.y * Math.sin(pitch) + z * Math.cos(pitch);
+
+    return { x, y, z };
+}
+
+// Projeção de 3D para 2D
+function project(point) {
+    const fov = 400; // campo de visão
+    return {
+        x: (point.x / point.z) * fov + canvas.width / 2,
+        y: (point.y / point.z) * fov + canvas.height / 2
+    };
+}
+
+// Desenhar o cubo
+function drawCube() {
+    const rotated = cubeVertices.map(v => rotate3D(v, cameraYaw, cameraPitch));
+
+    const projected = rotated.map(v => project({
+        x: v.x,
+        y: v.y,
+        z: v.z + 5 // distancia da câmera
+    }));
+
+    ctx.strokeStyle = "white";
+    ctx.beginPath();
+    for (let [a, b] of edges) {
+        const p1 = projected[a];
+        const p2 = projected[b];
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+    }
+    ctx.stroke();
+}
+
+// Loop do jogo
+function draw() {
+    ctx.fillStyle = "#111";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    drawCube();
 
     requestAnimationFrame(draw);
 }
