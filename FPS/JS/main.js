@@ -12,7 +12,7 @@ let cameraPos = { x: 0, y: 0, z: 0 };
 cameraPos.y = 0; // altura inicial
 let velocityY = 0;
 const gravity = 0.01; // força da gravidade
-const jumpForce = 0.2; // força do pulo
+const jumpForce = 0.5; // força do pulo
 let onGround = true;
 
 
@@ -68,6 +68,7 @@ const edges = [
 
 // Lista de cubos no mundo
 let cubes = [];
+
 for (let i = -5; i <= 5; i += 3) {
     for (let j = 5; j <= 20; j += 5) {
         cubes.push({ x: i, y: 0, z: j });
@@ -140,18 +141,18 @@ function updateMovement() {
     }
 
     // --- Gravidade e pulo ---
-    velocityY -= gravity;
+    velocityY += gravity;
 
     // Pular (barra de espaço)
     if (keys[" "] && onGround) {
-        velocityY = jumpForce;
+        velocityY = -jumpForce;
         onGround = false;
     }
 
     cameraPos.y += velocityY;
 
     // Se atingir o chão
-    if (cameraPos.y <= 0) {
+    if (cameraPos.y >= 0) {
         cameraPos.y = 0;
         velocityY = 0;
         onGround = true;
@@ -160,8 +161,8 @@ function updateMovement() {
 
 // desenha o chao 
 function drawGround() {
-    const size = 50;
-    const step = 2;
+    const size = 10;
+    const step = 1;
     ctx.strokeStyle = "#333";
     ctx.lineWidth = 1;
 
