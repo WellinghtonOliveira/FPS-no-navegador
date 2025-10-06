@@ -4,50 +4,45 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Variáveis da câmera
+// ===== Variáveis da câmera =====
 let cameraYaw = 0;
 let cameraPitch = 0;
 let cameraPos = { x: 0, y: 0, z: 0 };
 
-cameraPos.y = 0; // altura inicial
 let velocityY = 0;
-const gravity = 0.01; // força da gravidade
-const jumpForce = 0.5; // força do pulo
+const gravity = 0.01; // gravidade puxando pra baixo
+const jumpForce = 0.2; // força do pulo
 let onGround = true;
 
+// ===== Configurações do jogador =====
+const playerHeight = 1.8;
+const playerRadius = 0.5;
 
-
+// ===== Variáveis de tiro =====
 let lastShotTime = 0;
 let shotDir = { x: 0, y: 0, z: 0 };
 
-// Configuração do jogador
-const playerHeight = 1.8; // altura do jogador
-const playerRadius = 0.5;
+// ===== Controle de entrada =====
+const keys = {};
+document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
-// Travar cursor
+// Travar o cursor
 canvas.addEventListener("click", () => {
     canvas.requestPointerLock();
 });
 
-// Controle do mouse
+// Movimento do mouse (olhar)
 document.addEventListener("mousemove", (event) => {
     if (document.pointerLockElement === canvas) {
         const sensibilidade = 0.002;
         cameraYaw += event.movementX * sensibilidade;
-        cameraPitch += event.movementY * sensibilidade;
+        cameraPitch -= event.movementY * sensibilidade; // invertido para olhar certo
         cameraPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraPitch));
     }
 });
 
-// Captura das teclas
-const keys = {};
-document.addEventListener("keydown", (e) => keys[e.key.toLowerCase()] = true);
-document.addEventListener("keyup", (e) => keys[e.key.toLowerCase()] = false);
-
-// Clique para atirar
-document.addEventListener("mousedown", shoot);
-
-// Pontos do cubo 3D
+// ===== Cubos do mundo =====
 const cubeVertices = [
     { x: -1, y: -1, z: -1 },
     { x: 1, y: -1, z: -1 },
@@ -59,36 +54,33 @@ const cubeVertices = [
     { x: -1, y: 1, z: 1 },
 ];
 
-// Ligações entre vértices (arestas)
 const edges = [
     [0, 1], [1, 2], [2, 3], [3, 0],
     [4, 5], [5, 6], [6, 7], [7, 4],
     [0, 4], [1, 5], [2, 6], [3, 7],
 ];
 
-// Lista de cubos no mundo
+// Gera cubos no mundo
 let cubes = [];
-
 for (let i = -5; i <= 5; i += 3) {
     for (let j = 5; j <= 20; j += 5) {
         cubes.push({ x: i, y: 0, z: j });
     }
 }
 
-// Função de rotação 3D
+// ===== Funções 3D =====
 function rotate3D(point, yaw, pitch) {
-    // Rotação Y (esquerda/direita)
+    // Rotação em Y (esquerda/direita)
     let x = point.x * Math.cos(yaw) - point.z * Math.sin(yaw);
     let z = point.x * Math.sin(yaw) + point.z * Math.cos(yaw);
 
-    // Rotação X (cima/baixo)
+    // Rotação em X (cima/baixo)
     let y = point.y * Math.cos(pitch) - z * Math.sin(pitch);
     z = point.y * Math.sin(pitch) + z * Math.cos(pitch);
 
     return { x, y, z };
 }
 
-// Projeção 3D -> 2D
 function project(point) {
     const fov = 400;
     return {
@@ -97,26 +89,22 @@ function project(point) {
     };
 }
 
-// Detecção de colisão simples (cubo vs jogador)
+// ===== Movimento e gravidade =====
 function collides(nx, nz) {
     for (const cube of cubes) {
         const dx = nx - cube.x;
         const dz = nz - cube.z;
         const dist = Math.sqrt(dx * dx + dz * dz);
-        if (dist < 1.5 + playerRadius) {
-            return true; // colisão
-        }
+        if (dist < 1.5 + playerRadius) return true;
     }
     return false;
 }
 
-// Movimento do jogador
 function updateMovement() {
     const velocidade = 0.05;
     let nx = cameraPos.x;
     let nz = cameraPos.z;
 
-    // Movimento horizontal
     if (keys["w"]) {
         nx += Math.sin(cameraYaw) * velocidade;
         nz += Math.cos(cameraYaw) * velocidade;
@@ -134,43 +122,41 @@ function updateMovement() {
         nz -= Math.sin(cameraYaw) * velocidade;
     }
 
-    // Colisão horizontal
     if (!collides(nx, nz)) {
         cameraPos.x = nx;
         cameraPos.z = nz;
     }
 
-    // --- Gravidade e pulo ---
-    velocityY += gravity;
+    // Gravidade (puxa pra baixo)
+    velocityY -= gravity;
 
-    // Pular (barra de espaço)
+    // Pular
     if (keys[" "] && onGround) {
-        velocityY = -jumpForce;
+        velocityY = jumpForce;
         onGround = false;
     }
 
     cameraPos.y += velocityY;
 
-    // Se atingir o chão
-    if (cameraPos.y >= 0) {
+    // Chão
+    if (cameraPos.y <= 0) {
         cameraPos.y = 0;
         velocityY = 0;
         onGround = true;
     }
 }
 
-// desenha o chao 
+// ===== Desenho do chão =====
 function drawGround() {
-    const size = 10;
-    const step = 1;
+    const size = 50;
+    const step = 2;
     ctx.strokeStyle = "#333";
     ctx.lineWidth = 1;
 
-    // linhas paralelas a Z
     for (let x = -size; x <= size; x += step) {
         ctx.beginPath();
-        const p1 = rotate3D({ x: x - cameraPos.x, y: -cameraPos.y, z: -size - cameraPos.z }, cameraYaw, cameraPitch);
-        const p2 = rotate3D({ x: x - cameraPos.x, y: -cameraPos.y, z: size - cameraPos.z }, cameraYaw, cameraPitch);
+        const p1 = rotate3D({ x: x - cameraPos.x, y: -playerHeight, z: -size - cameraPos.z }, cameraYaw, cameraPitch);
+        const p2 = rotate3D({ x: x - cameraPos.x, y: -playerHeight, z: size - cameraPos.z }, cameraYaw, cameraPitch);
         if (p1.z > 0.1 && p2.z > 0.1) {
             const proj1 = project(p1);
             const proj2 = project(p2);
@@ -180,11 +166,10 @@ function drawGround() {
         }
     }
 
-    // linhas paralelas a X
     for (let z = -size; z <= size; z += step) {
         ctx.beginPath();
-        const p1 = rotate3D({ x: -size - cameraPos.x, y: -cameraPos.y, z: z - cameraPos.z }, cameraYaw, cameraPitch);
-        const p2 = rotate3D({ x: size - cameraPos.x, y: -cameraPos.y, z: z - cameraPos.z }, cameraYaw, cameraPitch);
+        const p1 = rotate3D({ x: -size - cameraPos.x, y: -playerHeight, z: z - cameraPos.z }, cameraYaw, cameraPitch);
+        const p2 = rotate3D({ x: size - cameraPos.x, y: -playerHeight, z: z - cameraPos.z }, cameraYaw, cameraPitch);
         if (p1.z > 0.1 && p2.z > 0.1) {
             const proj1 = project(p1);
             const proj2 = project(p2);
@@ -195,9 +180,7 @@ function drawGround() {
     }
 }
 
-
-
-// Desenhar cubo
+// ===== Desenhar cubo =====
 function drawCube(x, y, z) {
     const rotated = cubeVertices.map(v => {
         let p = {
@@ -205,20 +188,14 @@ function drawCube(x, y, z) {
             y: v.y + y - cameraPos.y,
             z: v.z + z - cameraPos.z
         };
-
         return rotate3D(p, cameraYaw, cameraPitch);
     });
 
     const projected = rotated
-        .filter(v => v.z > 0.1) // ignora cubos atrás da câmera
-        .map(v => project({
-            x: v.x,
-            y: v.y,
-            z: v.z + 5
-        }));
+        .filter(v => v.z > 0.1)
+        .map(v => project({ x: v.x, y: v.y, z: v.z + 5 }));
 
-    if (projected.length < cubeVertices.length) return; // não desenha se o cubo estiver atrás
-
+    if (projected.length < cubeVertices.length) return;
 
     ctx.strokeStyle = "white";
     ctx.beginPath();
@@ -231,17 +208,17 @@ function drawCube(x, y, z) {
     ctx.stroke();
 }
 
-// Sistema de tiro (raycast)
+// ===== Tiro =====
+document.addEventListener("mousedown", shoot);
+
 function shoot() {
     const range = 20;
     const step = 0.1;
 
-    // Direção 3D
     const dirX = Math.sin(cameraYaw) * Math.cos(cameraPitch);
     const dirY = Math.sin(cameraPitch);
     const dirZ = Math.cos(cameraYaw) * Math.cos(cameraPitch);
 
-    // Salva info do último disparo (para o efeito visual)
     lastShotTime = performance.now();
     shotDir = { x: dirX, y: dirY, z: dirZ };
 
@@ -256,7 +233,6 @@ function shoot() {
             const dy = ry - cube.y;
             const dz = rz - cube.z;
             const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
             if (dist < 1.5) {
                 cubes.splice(i, 1);
                 return;
@@ -265,22 +241,19 @@ function shoot() {
     }
 }
 
-// Desenha o efeito de tiro
+// ===== Efeito visual do tiro =====
 function drawShotEffect() {
     const timeSinceShot = performance.now() - lastShotTime;
-    if (timeSinceShot > 100) return; // 100ms de duração
+    if (timeSinceShot > 100) return;
 
     const cx = canvas.width / 2;
     const cy = canvas.height / 2;
 
-    // Posição da arma (de onde o tiro sai)
     const gunX = cx;
     const gunY = canvas.height - 50;
 
-    // Transparência e brilho variam com o tempo
     const alpha = 1 - timeSinceShot / 100;
 
-    // Traço do tiro
     ctx.strokeStyle = `rgba(255, 220, 100, ${alpha})`;
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -288,20 +261,17 @@ function drawShotEffect() {
     ctx.lineTo(cx, cy);
     ctx.stroke();
 
-    // Flash da boca da arma
     ctx.fillStyle = `rgba(255, 240, 150, ${alpha})`;
     ctx.beginPath();
     ctx.arc(gunX, gunY - 10, 15 * alpha, 0, Math.PI * 2);
     ctx.fill();
 }
 
-
-// Desenhar a arma (HUD)
+// ===== HUD (mira e arma) =====
 function drawGun() {
     const cx = canvas.width / 2;
     const cy = canvas.height / 2;
 
-    // Crosshair
     ctx.strokeStyle = "red";
     ctx.beginPath();
     ctx.moveTo(cx - 10, cy);
@@ -310,22 +280,19 @@ function drawGun() {
     ctx.lineTo(cx, cy + 10);
     ctx.stroke();
 
-    // Arma simples (retângulo)
     ctx.fillStyle = "#555";
     ctx.fillRect(cx - 40, canvas.height - 80, 80, 80);
 }
 
-// Loop principal
+// ===== Loop principal =====
 function draw() {
     ctx.fillStyle = "#111";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     updateMovement();
+    drawGround();
 
-    drawGround()
-    for (const cube of cubes) {
-        drawCube(cube.x, cube.y, cube.z);
-    }
+    for (const cube of cubes) drawCube(cube.x, cube.y, cube.z);
 
     drawGun();
     drawShotEffect();
