@@ -1,3 +1,9 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     overflow: hidden;
@@ -10,10 +16,46 @@ canvas {
     background: #000;
 }
 
-#info {
+#info-cont {
+    background-color: rgba(187, 185, 185, 0.2);
+    box-shadow: 0 0 10px gray;
+    width: 99%;
+    height: 50px;
+    margin: 5px;
+    padding: 3px;
     position: absolute;
-    top: 10px;
-    left: 10px;
     font-family: monospace;
     color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info-game {
+    font-size: 17px;
+    font-family: Arial, Helvetica, sans-serif;
+    letter-spacing: 1px;
+    font-weight: bold;
+    text-shadow: 0 0 3px rgba(255, 255, 0, 0.4);
+}
+
+.hud {
+    width: 100%;
+    height: auto;
+    display: flex;
+    justify-content: space-around;
+    margin: auto;
+    padding: 0 30px;
+}
+
+.hud div {
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    font-family: sans-serif;
+}
+
+.hud span {
+    font-size: 18px;
+    font-family: 'Times New Roman', Times, serif;
 }
