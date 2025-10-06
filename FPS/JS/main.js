@@ -9,9 +9,9 @@ let cameraPitch = 0;
 let cameraPos = { x: 0, y: 0, z: 0 }; // posição do jogador (pés)
 let velocityY = 0;
 
-const gravity = 0.02;      // força da gravidade
-const jumpForce = 0.45;    // força do pulo
-const eyeLevel = 1.7;      // altura dos olhos
+const gravity = 0.01;      // força da gravidade
+const jumpForce = 1;    // força do pulo
+const eyeLevel = 2;      // altura dos olhos
 const playerRadius = 0.5;
 
 let onGround = true;
