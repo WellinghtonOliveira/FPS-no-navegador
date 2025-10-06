@@ -131,14 +131,12 @@ function drawGround() {
 
 // === RECOIL ===
 let recoil = 0;
-let recoilReturn = 0.05;
 let gunScale = 1;         // escala atual da arma
 let gunRecoilScale = 1.7; // o quanto ela cresce no tiro
 let gunReturnSpeed = 0.05; // velocidade de retorno
 
 
 function applyRecoil() {
-    recoil = 0.1;
     gunScale = gunRecoilScale; // aumenta a arma levemente
 }
 
@@ -147,21 +145,70 @@ function updateGunScale() {
     if (gunScale < 1) gunScale = 1;
 }
 
-function updateRecoil() {
-    if (recoil > 0) recoil -= recoilReturn;
-    if (recoil < 0) recoil = 0;
+function playerCollidesWithCube(cube) {
+    const player = {
+        x: cameraPos.x - playerRadius,
+        y: cameraPos.y,
+        z: cameraPos.z - playerRadius
+    };
+    const size = 3; // tamanho do cubo
+    const playerSize = playerRadius * 2;
+
+    return (
+        player.x < cube.x + size &&
+        player.x + playerSize > cube.x &&
+        player.y < cube.y + size &&
+        player.y + eyeLevel > cube.y &&
+        player.z < cube.z + size &&
+        player.z + playerSize > cube.z
+    );
+}
+
+function checkCollision(a, b, size = 2) {
+    return (
+        a.x < b.x + size &&
+        a.x + size > b.x &&
+        a.y < b.y + size &&
+        a.y + size > b.y &&
+        a.z < b.z + size &&
+        a.z + size > b.z
+    );
 }
 
 // === INIMIGOS (cubos que seguem) ===
 function updateEnemies() {
-    const speed = 0.02;
-    for (let e of cubes) {
-        const dx = cameraPos.x - e.x;
-        const dz = cameraPos.z - e.z;
-        const dist = Math.sqrt(dx * dx + dz * dz);
-        if (dist > 2) { // evita atravessar
-            e.x += (dx / dist) * speed;
-            e.z += (dz / dist) * speed;
+    for (const c of cubes) {
+        if (playerCollidesWithCube(c)) {
+            console.log("O jogador foi atingido!");
+            // aqui você pode subtrair vida ou fazer qualquer evento
+        }
+    }
+
+    for (let i = 0; i < cubes.length; i++) {
+        let cube = cubes[i];
+
+        // mover na direção do jogador
+        let dx = cameraPos.x - cube.x;
+        let dz = cameraPos.z - cube.z;
+        let dist = Math.hypot(dx, dz);
+        if (dist > 0.1) {
+            cube.x += (dx / dist) * 0.02;
+            cube.z += (dz / dist) * 0.02;
+        }
+
+        // checar colisão com outros cubos
+        for (let j = 0; j < cubes.length; j++) {
+            if (i === j) continue; // ignora ele mesmo
+            let other = cubes[j];
+
+            if (checkCollision(cube, other, 2)) {
+                // simples empurrão para não se sobrepor
+                if (cube.x < other.x) cube.x -= 0.01;
+                else cube.x += 0.01;
+
+                if (cube.z < other.z) cube.z -= 0.01;
+                else cube.z += 0.01;
+            }
         }
     }
 }
@@ -192,7 +239,15 @@ function drawCube(cx, cy, cz) {
 // === TIRO ===
 let lastShotTime = 0;
 let shotCooldown = 200; // ms entre tiros
-document.addEventListener("mousedown", shoot);
+let comeco = false
+document.addEventListener("mousedown", () => {
+    if (!comeco) {
+        draw()
+        comeco = true
+    }else {
+        shoot()
+    }
+});
 
 function shoot() {
     const now = performance.now();
@@ -263,7 +318,6 @@ function draw() {
 
     updateMovement();
     updateEnemies();
-    updateRecoil();
     updateGunScale();
 
     drawGround();
@@ -274,4 +328,3 @@ function draw() {
 
     requestAnimationFrame(draw);
 }
-draw();
