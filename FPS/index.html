@@ -10,10 +10,12 @@
 </head>
 <body>
     <div id="info-cont">
-        <p>clique na tela para começar</p>
-        <div class="vida">00</div>
-        <div class="dano">00</div>
-        <div class="bala">00</div>
+        <p class="info-game">clique em qualquer lugar da tela para começar</p>
+        <div class="hud">
+            <div class="vida">VIDA: <span class="span-vida">00</span></div>
+            <div class="dano">DAMAGE: <span class="span-damage">00</span></div>
+            <div class="moeda">MOEDA: <span class="span-dinheiro">00</span></div>
+        </div>
     </div>
     <canvas id="game"></canvas>
     <script src="./JS/main.js"></script>
