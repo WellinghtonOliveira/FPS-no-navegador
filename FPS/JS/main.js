@@ -14,6 +14,21 @@ const jumpForce = 1;
 const eyeLevel = 3;
 const playerRadius = 0.5;
 let onGround = true;
+let comeco = false
+
+// === HUD ===
+const containerHud = document.querySelector(".hud")
+const info = document.querySelector(".info-game")
+
+containerHud.style.display = "none"
+function controlHud() {
+    if (comeco) {
+        containerHud.style.display = " flex"
+        info.style.display = "none"
+    } else {
+        containerHud.style.display = "none"
+    }
+}
 
 // === INPUT ===
 const keys = {};
@@ -239,12 +254,12 @@ function drawCube(cx, cy, cz) {
 // === TIRO ===
 let lastShotTime = 0;
 let shotCooldown = 200; // ms entre tiros
-let comeco = false
 document.addEventListener("mousedown", () => {
     if (!comeco) {
         draw()
         comeco = true
-    }else {
+        controlHud()
+    } else {
         shoot()
     }
 });
