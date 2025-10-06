@@ -116,45 +116,18 @@ function updateMovement() {
 
 
 function drawGround() {
-    const gridSize = 20;   // número de quadrados em cada direção
-    const squareSize = 2;  // tamanho de cada quadrado
-    const y = 0;           // altura do chão
+    const horizon = canvas.height / 2 + cameraPitch * 400; // move um pouco quando olha pra cima/baixo
+    const groundHeight = canvas.height - horizon;
 
-    for (let x = -gridSize; x <= gridSize; x++) {
-        for (let z = -gridSize; z <= gridSize; z++) {
-            const cubeX = x * squareSize;
-            const cubeZ = z * squareSize;
+    // Cor do chão
+    const gradient = ctx.createLinearGradient(0, horizon, 0, canvas.height);
+    gradient.addColorStop(0, "#2e8b57");
+    gradient.addColorStop(1, "#145214");
 
-            // cor verde
-            const color = "#228B22";
-
-            // desenhar quadrado como "plano" 3D (apenas topo do quadrado)
-            const vertices = [
-                { x: cubeX,     y: y, z: cubeZ },
-                { x: cubeX + squareSize, y: y, z: cubeZ },
-                { x: cubeX + squareSize, y: y, z: cubeZ + squareSize },
-                { x: cubeX,     y: y, z: cubeZ + squareSize }
-            ];
-
-            // rotacionar e projetar
-            const projected = vertices.map(v => {
-                const r = rotate3D({ x: v.x - cameraPos.x, y: v.y - cameraPos.y, z: v.z - cameraPos.z }, cameraYaw, cameraPitch);
-                return project(r);
-            });
-
-            // pintar o quadrado
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.moveTo(projected[0].x, projected[0].y);
-            for (let i = 1; i < projected.length; i++) {
-                ctx.lineTo(projected[i].x, projected[i].y);
-            }
-            ctx.closePath();
-            ctx.fill();
-        }
-    }
+    // desenha o chão
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, horizon, canvas.width, groundHeight);
 }
-
 
 
 // === DESENHAR CUBOS ===
