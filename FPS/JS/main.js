@@ -109,6 +109,8 @@ function updateMovement() {
     if (keys["s"]) { nx -= Math.sin(cameraYaw) * speed; nz -= Math.cos(cameraYaw) * speed; }
     if (keys["a"]) { nx -= Math.cos(cameraYaw) * speed; nz += Math.sin(cameraYaw) * speed; }
     if (keys["d"]) { nx += Math.cos(cameraYaw) * speed; nz -= Math.sin(cameraYaw) * speed; }
+    
+    if (keys["escape"]) comeco = false;
 
     if (!collides(nx, nz)) {
         cameraPos.x = nx;
@@ -194,7 +196,6 @@ function checkCollision(a, b, size = 2) {
 function updateEnemies() {
     for (const c of cubes) {
         if (playerCollidesWithCube(c)) {
-            console.log("O jogador foi atingido!");
             // aqui você pode subtrair vida ou fazer qualquer evento
         }
     }
@@ -256,8 +257,8 @@ let lastShotTime = 0;
 let shotCooldown = 200; // ms entre tiros
 document.addEventListener("mousedown", () => {
     if (!comeco) {
-        draw()
         comeco = true
+        draw()
         controlHud()
     } else {
         shoot()
@@ -341,5 +342,5 @@ function draw() {
     drawGun();
     drawShotEffect();
 
-    requestAnimationFrame(draw);
+    if (comeco) requestAnimationFrame(draw);
 }
