@@ -16,6 +16,17 @@ const playerRadius = 0.5;
 let onGround = true;
 let comeco = false
 
+const Svida = document.querySelector(".span-vida")
+const Sdamage = document.querySelector(".span-damage")
+const Sdinheiro = document.querySelector(".span-dinheiro")
+let vida = 100
+let damage = 0.5
+let dinheiro = 0
+
+Svida.textContent = vida
+Sdamage.textContent = damage
+Sdinheiro.textContent = dinheiro
+
 // === HUD ===
 const containerHud = document.querySelector(".hud")
 const info = document.querySelector(".info-game")
@@ -27,6 +38,7 @@ function controlHud() {
         info.style.display = "none"
     } else {
         containerHud.style.display = "none"
+        info.style.display = "block"
     }
 }
 
@@ -109,9 +121,11 @@ function updateMovement() {
     if (keys["s"]) { nx -= Math.sin(cameraYaw) * speed; nz -= Math.cos(cameraYaw) * speed; }
     if (keys["a"]) { nx -= Math.cos(cameraYaw) * speed; nz += Math.sin(cameraYaw) * speed; }
     if (keys["d"]) { nx += Math.cos(cameraYaw) * speed; nz -= Math.sin(cameraYaw) * speed; }
-    
-    if (keys["escape"]) comeco = false;
 
+    if (keys["escape"]) {
+        comeco = false
+        controlHud()
+    }
     if (!collides(nx, nz)) {
         cameraPos.x = nx;
         cameraPos.z = nz;
