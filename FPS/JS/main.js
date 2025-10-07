@@ -19,13 +19,16 @@ let comeco = false
 const Svida = document.querySelector(".span-vida")
 const Sdamage = document.querySelector(".span-damage")
 const Sdinheiro = document.querySelector(".span-dinheiro")
+
 let vida = 100
 let damage = 0.5
 let dinheiro = 0
 
-Svida.textContent = vida
-Sdamage.textContent = damage
-Sdinheiro.textContent = dinheiro
+function updateHud() {
+    Svida.textContent = Math.trunc(vida)
+    Sdamage.textContent = damage
+    Sdinheiro.textContent = dinheiro
+}
 
 // === HUD ===
 const containerHud = document.querySelector(".hud")
@@ -210,7 +213,8 @@ function checkCollision(a, b, size = 2) {
 function updateEnemies() {
     for (const c of cubes) {
         if (playerCollidesWithCube(c)) {
-            // aqui você pode subtrair vida ou fazer qualquer evento
+            vida -= 0.01
+            updateHud()
         }
     }
 
