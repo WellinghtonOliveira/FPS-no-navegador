@@ -215,6 +215,12 @@ function updateEnemies() {
         if (playerCollidesWithCube(c)) {
             vida -= 0.01
             updateHud()
+
+            if (vida <= 0) {
+                alert("Você esta morto!")
+                window.location.reload(true)
+                return
+            }
         }
     }
 
