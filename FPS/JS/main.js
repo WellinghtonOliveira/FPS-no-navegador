@@ -218,9 +218,13 @@ function updateEnemies() {
             updateHud()
 
             if (vida <= 0) {
-                alert("Você esta morto!")
-                window.location.reload(true)
-                return
+                chamadaMorte = true
+                if (chamadaMorte) {
+                    chamadaMorte = false
+                    alert("Você esta morto!")
+                    window.location.reload(true)
+                    return
+                }
             }
         }
     }
