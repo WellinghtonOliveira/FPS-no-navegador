@@ -209,23 +209,21 @@ function checkCollision(a, b, size = 2) {
     );
 }
 
+function reloadGame() {
+    if (vida <= 0) {
+        alert("Você esta morto!")
+        window.location.reload(true)
+        return true
+    }
+}
+
 // === INIMIGOS (cubos que seguem) ===
-let chamadaMorte = false
 function updateEnemies() {
     for (const c of cubes) {
         if (playerCollidesWithCube(c)) {
             vida -= 0.01
             updateHud()
-
-            if (vida <= 0) {
-                chamadaMorte = true
-                if (chamadaMorte) {
-                    chamadaMorte = false
-                    alert("Você esta morto!")
-                    window.location.reload(true)
-                    return
-                }
-            }
+            if (reloadGame()) break
         }
     }
 
@@ -364,6 +362,7 @@ function draw() {
     updateMovement();
     updateEnemies();
     updateGunScale();
+    updateHud()
 
     drawGround();
     for (const c of cubes) drawCube(c.x, c.y, c.z);
