@@ -210,6 +210,7 @@ function checkCollision(a, b, size = 2) {
 }
 
 // === INIMIGOS (cubos que seguem) ===
+let chamadaMorte = false
 function updateEnemies() {
     for (const c of cubes) {
         if (playerCollidesWithCube(c)) {
