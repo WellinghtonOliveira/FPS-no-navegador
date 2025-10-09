@@ -209,21 +209,25 @@ function checkCollision(a, b, size = 2) {
     );
 }
 
+let chamadaMorte = false;
+
 function reloadGame() {
-    if (vida <= 0) {
-        alert("Você esta morto!")
-        window.location.reload(true)
-        return true
+    if (vida <= 0 && !chamadaMorte) {
+        chamadaMorte = true;
+        alert("Você está morto!");
+        window.location.reload();
+        return true;
     }
+    return false;
 }
 
 // === INIMIGOS (cubos que seguem) ===
 function updateEnemies() {
     for (const c of cubes) {
         if (playerCollidesWithCube(c)) {
-            vida -= 0.01
-            updateHud()
-            if (reloadGame()) break
+            vida -= 0.01;
+            updateHud();
+            reloadGame();
         }
     }
 
