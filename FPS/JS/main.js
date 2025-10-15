@@ -221,6 +221,7 @@ function reloadGame() {
     return false;
 }
 
+
 // === INIMIGOS (cubos que seguem) ===
 function updateEnemies() {
     for (const c of cubes) {
