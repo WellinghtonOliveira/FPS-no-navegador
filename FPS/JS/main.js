@@ -342,7 +342,7 @@ function drawGun() {
 
     // arma
     ctx.fillStyle = "#555";
-    ctx.fillRect(cx - size, canvas.height - 80 * gunScale, size * 2, 60 * gunScale);
+    ctx.fillRect(cx - size, canvas.height - 50 * gunScale, size * 2, 60 * gunScale);
 }
 
 
