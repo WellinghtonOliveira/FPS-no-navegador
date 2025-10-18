@@ -297,6 +297,7 @@ document.addEventListener("mousedown", () => {
     }
 });
 
+
 function shoot() {
     const now = performance.now();
     if (now - lastShotTime < shotCooldown) return; // delay
