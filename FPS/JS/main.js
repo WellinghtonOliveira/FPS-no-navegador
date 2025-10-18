@@ -331,7 +331,7 @@ function shoot() {
 function drawGun() {
     const cx = canvas.width / 2;
     const cy = canvas.height / 2;
-    const size = 36 * gunScale; // aplica o crescimento aqui
+    const size = 36 * gunScale
 
     // mira
     ctx.strokeStyle = "red";
