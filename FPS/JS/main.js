@@ -360,7 +360,7 @@ function drawShotEffect() {
     ctx.fill();
 }
 
-// === LOOP PRINCIPAL ===
+// === LOOP PRINCIPAL ====
 function draw() {
     ctx.fillStyle = "#111";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
