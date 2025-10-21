@@ -378,3 +378,4 @@ function draw() {
 
     if (comeco) requestAnimationFrame(draw);
 }
+
